@@ -1,20 +1,6 @@
-# Ignorowanie katalogu node_modules, ponieważ zależności są instalowane podczas budowania obrazu.
-node_modules
-
-# Ignorowanie folderu .git, aby nie dodawać historii wersji do obrazu.
-.git
-
-# Ignorowanie pliku npm-debug.log, który jest generowany podczas błędów w npm.
 npm-debug.log
-
-# Ignorowanie pliku Dockerfile, ponieważ jest już obecny w repozytorium i nie jest potrzebny w obrazie.
 Dockerfile
-
-# Ignorowanie pliku .dockerignore, ponieważ nie jest potrzebny w obrazie.
 .dockerignore
-
-# Ignorowanie folderu test, który zawiera testy, a nie jest wymagany w produkcji.
 test
-
-# Ignorowanie folderu docs, który zawiera dokumentację, niepotrzebną w produkcji.
 docs
+
