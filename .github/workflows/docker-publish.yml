@@ -56,6 +56,11 @@ jobs:
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest,mode=max
 
+      - name: Debug tagi z metadata
+        run: |
+          echo "TAGI Z METADATA:"
+          echo "${{ steps.meta.outputs.tags }}"
+
       - name: Ręczne pobranie obrazu
         run: docker pull ${{ env.GHCR_TAG }}
 
