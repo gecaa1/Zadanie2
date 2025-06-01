@@ -68,3 +68,4 @@ jobs:
           format: table
           exit-code: 1
           severity: HIGH,CRITICAL
+          github-pat: ${{ secrets.GHCR_TOKEN }}
