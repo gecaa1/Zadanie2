@@ -56,10 +56,15 @@ jobs:
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest,mode=max
 
-      - name: Scan image with Trivy (HIGH/CRITICAL only)
+      - name: Install Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ steps.meta.outputs.tags }}
-          format: table
-          exit-code: 1
-          severity: HIGH,CRITICAL
+          skip-db-update: true
+
+      - name: Scan all built image tags with Trivy
+        if: success()
+        run: |
+          for tag in ${{ steps.meta.outputs.tags }}; do
+            echo "🔍 Skanuję $tag..."
+            trivy image --exit-code 1 --severity HIGH,CRITICAL --format table "$tag"
+          done
