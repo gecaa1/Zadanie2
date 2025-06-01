@@ -56,15 +56,14 @@ jobs:
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest,mode=max
 
-      - name: Extract GHCR tag
-        run: |
-          echo "GHCR_TAG=$(echo '${{ steps.meta.outputs.tags }}' | tr '\n' ' ' | grep -o 'ghcr.io[^ ]*')" >> $GITHUB_ENV
+      - name: Ręczne pobranie obrazu
+        run: docker pull ${{ env.GHCR_TAG }}
 
-      - name: Scan GHCR image with Trivy
+      - name: Skanowanie obrazu lokalnie (Trivy)
         uses: aquasecurity/trivy-action@0.16.1
         with:
           image-ref: ${{ env.GHCR_TAG }}
           format: table
           exit-code: 1
           severity: HIGH,CRITICAL
-          github-pat: ${{ secrets.GHCR_TOKEN }}
+
