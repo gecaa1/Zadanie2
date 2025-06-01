@@ -46,29 +46,20 @@ jobs:
           tags: |
             type=sha
 
-      - name: Build and export image (with cache)
+      - name: Build and push image (multiarch + cache)
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: false
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest,mode=max
-          outputs: type=oci,dest=image.tar
 
-      - name: Scan image with Trivy
+      - name: Scan image with Trivy (HIGH/CRITICAL only)
         uses: aquasecurity/trivy-action@master
         with:
-          input: image.tar
+          image-ref: ${{ steps.meta.outputs.tags }}
           format: table
           exit-code: 1
           severity: HIGH,CRITICAL
-
-      - name: Load and push image to registries
-        if: success()
-        run: |
-          docker load -i image.tar
-          for tag in ${{ steps.meta.outputs.tags }}; do
-            docker push "$tag"
-          done
