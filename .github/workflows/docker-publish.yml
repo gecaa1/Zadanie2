@@ -54,17 +54,19 @@ jobs:
 
       - name: Wyciągnij tag GHCR
         run: |
-          echo "GHCR_TAG=$(echo '${{ steps.meta.outputs.tags }}' | grep -o 'ghcr.io[^ ]*')" >> $GITHUB_ENV
-
-      - name: Pobierz i skanuj obraz Trivy
-        run: |
+          GHCR_TAG=$(echo '${{ steps.meta.outputs.tags }}' | grep -o 'ghcr.io[^ ]*')
           if [ -z "$GHCR_TAG" ]; then
-            echo "::error ::Brak tagu GHCR – przerywam"
+            echo "::error ::Nie znaleziono tagu GHCR – przerywam"
             exit 1
           fi
-          docker pull "$GHCR_TAG"
-          trivy image --format table --exit-code 1 --severity HIGH,CRITICAL "$GHCR_TAG"
-        env:
-          GHCR_TAG: ${{ env.GHCR_TAG }}
-          TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ secrets.GHCR_TOKEN }}
+          echo "GHCR_TAG=$GHCR_TAG" >> $GITHUB_ENV
+          echo "Znaleziony GHCR_TAG: $GHCR_TAG"
+
+      - name: Skanuj obraz za pomocą Trivy
+        uses: aquasecurity/trivy-action@0.16.1
+        with:
+          image-ref: ${{ env.GHCR_TAG }}
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
+          github-pat: ${{ secrets.GHCR_TOKEN }}
