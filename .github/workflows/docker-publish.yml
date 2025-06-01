@@ -1,4 +1,4 @@
-name: Buduj i skanuj obraz Dockera
+name: Budowa i skanowanie obrazu Dockera
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker-build-scan:
+  build-scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,10 +16,10 @@ jobs:
       - name: Klonuj repozytorium
         uses: actions/checkout@v4
 
-      - name: Konfiguruj QEMU
+      - name: Ustaw QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Konfiguruj Buildx
+      - name: Ustaw Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Logowanie do GHCR
@@ -53,20 +53,23 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Wyciągnij tag GHCR
+        id: tag
         run: |
-          GHCR_TAG=$(echo '${{ steps.meta.outputs.tags }}' | grep -o 'ghcr.io[^ ]*')
+          GHCR_TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep -o 'ghcr.io[^ ]*')
           if [ -z "$GHCR_TAG" ]; then
-            echo "::error ::Nie znaleziono tagu GHCR – przerywam"
+            echo "::error ::Nie znaleziono tagu GHCR"
             exit 1
           fi
           echo "GHCR_TAG=$GHCR_TAG" >> $GITHUB_ENV
-          echo "Znaleziony GHCR_TAG: $GHCR_TAG"
+          echo "Używam obrazu: $GHCR_TAG"
 
-      - name: Skanuj obraz za pomocą Trivy
+      - name: Pobierz obraz z GHCR
+        run: docker pull "$GHCR_TAG"
+
+      - name: Skanuj obraz lokalnie z Trivy
         uses: aquasecurity/trivy-action@0.16.1
         with:
           image-ref: ${{ env.GHCR_TAG }}
           format: table
           exit-code: 1
           severity: HIGH,CRITICAL
-          github-pat: ${{ secrets.GHCR_TOKEN }}
