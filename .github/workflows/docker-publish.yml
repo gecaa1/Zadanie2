@@ -56,12 +56,14 @@ jobs:
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest,mode=max
 
+      - name: Extract first tag for CVE scan
+        id: extract_tag
+        run: echo "TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)" >> $GITHUB_OUTPUT
+
       - name: Scan image with Trivy
         uses: aquasecurity/trivy-action@0.16.1
         with:
-          image-ref: ${{ steps.meta.outputs.tags }}
+          image-ref: ${{ steps.extract_tag.outputs.TAG }}
           format: table
           exit-code: 1
           severity: HIGH,CRITICAL
-
-
