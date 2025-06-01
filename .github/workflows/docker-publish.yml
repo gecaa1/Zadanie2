@@ -1,74 +1,70 @@
-name: Build & Push Weather App (multiarch + CVE check)
+name: Buduj i skanuj obraz Dockera
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  docker-build-scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Checkout repo
+      - name: Klonuj repozytorium
         uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: Konfiguruj QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
+      - name: Konfiguruj Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR
+      - name: Logowanie do GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Log in to DockerHub
+      - name: Logowanie do DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
 
-      - name: Docker metadata (tagging)
+      - name: Generuj tag SHA
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}
             docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2
-          tags: |
-            type=sha
+          tags: type=sha
 
-      - name: Build and push image (multiarch + cache)
+      - name: Buduj i wypchnij obraz
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest
-          cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest,mode=max
 
-      - name: Debug tagi z metadata
+      - name: Wyciągnij tag GHCR
         run: |
-          echo "TAGI Z METADATA:"
-          echo "${{ steps.meta.outputs.tags }}"
+          echo "GHCR_TAG=$(echo '${{ steps.meta.outputs.tags }}' | grep -o 'ghcr.io[^ ]*')" >> $GITHUB_ENV
 
-      - name: Ręczne pobranie obrazu
-        run: docker pull ${{ env.GHCR_TAG }}
-
-      - name: Skanowanie obrazu lokalnie (Trivy)
-        uses: aquasecurity/trivy-action@0.16.1
-        with:
-          image-ref: ${{ env.GHCR_TAG }}
-          format: table
-          exit-code: 1
-          severity: HIGH,CRITICAL
-
+      - name: Pobierz i skanuj obraz Trivy
+        run: |
+          if [ -z "$GHCR_TAG" ]; then
+            echo "::error ::Brak tagu GHCR – przerywam"
+            exit 1
+          fi
+          docker pull "$GHCR_TAG"
+          trivy image --format table --exit-code 1 --severity HIGH,CRITICAL "$GHCR_TAG"
+        env:
+          GHCR_TAG: ${{ env.GHCR_TAG }}
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GHCR_TOKEN }}
