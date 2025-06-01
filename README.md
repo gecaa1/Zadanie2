@@ -10,9 +10,9 @@ Skanowanie Trivy – wykrywa podatności typu HIGH i CRITICAL.
 
 2. W repozytorium skonfigurowano trzy sekrety:
 
-GHCR_TOKEN – token personal access z uprawnieniami read:packages, write:packages
-DOCKERHUB_USER – login do DockerHuba
-DOCKERHUB_PASS – hasło lub token do DockerHuba
+-GHCR_TOKEN – token personal access z uprawnieniami read:packages, write:packages
+-DOCKERHUB_USER – login do DockerHuba
+-DOCKERHUB_PASS – hasło lub token do DockerHuba
 
 
 3. Workflow został poprawnie uruchomiony, co potwierdza jego działanie. Poniżej fragment logu Trivy:
