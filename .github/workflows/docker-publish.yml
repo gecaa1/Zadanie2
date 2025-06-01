@@ -56,17 +56,12 @@ jobs:
           cache-from: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest
           cache-to: type=registry,ref=docker.io/${{ secrets.DOCKERHUB_USER }}/zadanie2-cache:latest,mode=max
 
-      - name: Install Trivy CLI
-        run: |
-          sudo apt-get update && sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.16.1
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          format: table
+          exit-code: 1
+          severity: HIGH,CRITICAL
 
-      - name: Scan all built image tags with Trivy
-        if: success()
-        run: |
-          for tag in ${{ steps.meta.outputs.tags }}; do
-            echo "🔍 Skanuję $tag..."
-            trivy image --exit-code 1 --severity HIGH,CRITICAL --format table "$tag"
-          done
 
