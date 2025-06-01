@@ -31,5 +31,4 @@ A. Wykryto podatność HIGH – pipeline zadziałał zgodnie z oczekiwaniami i z
 
 Podsumowując
 Utworzony workflow CI/CD automatyzuje cały proces: budowa → publikacja → skanowanie.
-Praca została wykonana w pełni w GitHub, z wykorzystaniem dobrych praktyk bezpieczeństwa.
 Działanie zostało potwierdzone przez uruchomienie pipeline, który wykrył realną podatność CVE.
